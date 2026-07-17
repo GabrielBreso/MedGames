@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedGames — Letroso Med</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-bg: #770909;
+        --page-bg: #f2f8fa;
+        --card-bg: #ffffff;
+        --text-main: #333333;
+        --text-muted: #8a6a6a;
+        --accent-teal: #a81a1a;
+        --border-color: #dcc9c9;
+        --header-text: #faf2f2;
+        --ok-bg: #d1fae5;
+        --ok-border: #10b981;
+        --ok-text: #065f46;
+        --bad-bg: #fee2e2;
+        --bad-border: #ef4444;
+        --bad-text: #991b1b;
+        --present-bg: #fef3c7;
+        --present-border: #f59e0b;
+        --present-text: #92400e;
+        --absent-bg: #ece3e3;
+        --absent-border: #b9a6a6;
+        --absent-text: #6b5555;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--page-bg);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-image: radial-gradient(#dbe8ee 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
+    header {
+        background-color: var(--primary-bg);
+        color: var(--header-text);
+        padding: 14px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header-left, .header-right { display: flex; gap: 15px; font-size: 14px; }
+
+    .header-title {
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-title sup { font-size: 10px; vertical-align: super; }
+
+    a { color: inherit; text-decoration: none; cursor: pointer; }
+    a:hover { text-decoration: underline; }
+
+    main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 40px 16px;
+    }
+
+    .app {
+        background-color: var(--card-bg);
+        width: 100%;
+        max-width: 620px;
+        padding: 34px 32px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .brand { text-align: center; margin-bottom: 18px; }
+    .brand h1 { font-size: 28px; color: var(--primary-bg); font-weight: 700; }
+    .brand h1 span { font-weight: 400; color: var(--accent-teal); font-size: 0.62em; }
+    .brand p { margin-top: 4px; font-size: 13px; color: var(--text-muted); letter-spacing: 0.3px; }
+
+    .stats-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+    .stats-row b { color: var(--primary-bg); }
+
+    .chart-card {
+        background-color: #f7fbfc;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 16px;
+    }
+
+    .chart-head {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+        text-transform: uppercase;
+    }
+
+    /* Grade do jogo */
+    .grid-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+    .grid {
+        display: grid;
+        grid-template-rows: repeat(6, 1fr);
+        gap: 7px;
+    }
+    .grid-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 7px;
+    }
+    .tile {
+        width: 52px;
+        height: 52px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        text-transform: uppercase;
+        background-color: #ffffff;
+        color: var(--text-main);
+        transition: transform 0.15s ease;
+    }
+    .tile.filled { border-color: #b79b9b; }
+    .tile.flip { animation: flipTile 0.5s ease forwards; }
+    .tile.shake { animation: shakeTile 0.4s ease; }
+    @keyframes flipTile {
+        0% { transform: rotateX(0deg); }
+        50% { transform: rotateX(90deg); }
+        51% { transform: rotateX(90deg); }
+        100% { transform: rotateX(0deg); }
+    }
+    @keyframes shakeTile {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(6px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+    }
+    .tile.correct { background-color: var(--ok-border); border-color: var(--ok-border); color: #ffffff; }
+    .tile.present { background-color: var(--present-border); border-color: var(--present-border); color: #ffffff; }
+    .tile.absent { background-color: var(--absent-bg); border-color: var(--absent-border); color: var(--absent-text); }
+
+    /* Teclado virtual */
+    .keyboard { display: flex; flex-direction: column; gap: 7px; align-items: center; }
+    .kb-row { display: flex; gap: 5px; justify-content: center; }
+    .key {
+        min-width: 30px;
+        height: 44px;
+        border-radius: 6px;
+        border: none;
+        background-color: #e4d4d4;
+        color: var(--text-main);
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0 6px;
+        transition: background-color 0.15s;
+        text-transform: uppercase;
+    }
+    .key:hover { background-color: #d6c0c0; }
+    .key.wide { min-width: 52px; font-size: 11px; }
+    .key.correct { background-color: var(--ok-border); color: #fff; }
+    .key.present { background-color: var(--present-border); color: #fff; }
+    .key.absent { background-color: var(--absent-border); color: #fff2f2; }
+
+    .feedback { margin-top: 14px; }
+    .feedback-box {
+        border-radius: 10px;
+        padding: 16px 18px;
+        text-align: left;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .feedback-box.right { background-color: var(--ok-bg); border: 1px solid var(--ok-border); color: var(--ok-text); }
+    .feedback-box.wrong { background-color: var(--bad-bg); border: 1px solid var(--bad-border); color: var(--bad-text); }
+    .feedback-box .dx {
+        display: block;
+        font-size: 19px;
+        font-weight: 700;
+        margin-top: 6px;
+        font-style: italic;
+    }
+    .feedback-box .score { display: block; font-size: 12.5px; margin-top: 8px; opacity: 0.85; }
+    .explainer {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(0,0,0,0.12);
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text-main);
+    }
+    .explainer .title {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--primary-bg);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .toast {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--bad-text);
+        margin-bottom: 10px;
+        min-height: 18px;
+    }
+
+    .btn-primary {
+        background-color: var(--accent-teal);
+        color: white;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 14px;
+        transition: background-color 0.2s;
+        font-family: inherit;
+    }
+    .btn-primary:hover:not(:disabled) { background-color: #8d1616; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .share-btn { width: 100%; margin-top: 12px; }
+
+    .btn-ghost {
+        background-color: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 9px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        transition: background-color 0.2s;
+    }
+    .btn-ghost:hover { background-color: #f0f7f9; }
+
+    .share-feedback { margin-top: 8px; font-size: 12.5px; color: var(--ok-text); text-align: center; font-weight: 600; }
+    .share-fallback {
+        margin-top: 10px;
+        background-color: #f7fbfc;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 12.5px;
+    }
+    .share-fallback textarea {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px;
+        font-size: 12px;
+        font-family: inherit;
+        resize: none;
+    }
+
+    .note { margin-top: 22px; text-align: center; font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+    .test-tag { font-style: italic; color: var(--accent-teal); font-size: 12px; }
+
+    footer.site-footer {
+        background-color: var(--primary-bg);
+        color: var(--text-muted);
+        padding: 20px;
+        text-align: center;
+        font-size: 13px;
+    }
+    .footer-links { margin-top: 10px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .footer-links span { color: var(--text-muted); }
+
+    @media (max-width: 600px) {
+        .header-left, .header-right { display: none; }
+        .app { padding: 22px 16px; }
+        .tile { width: 42px; height: 42px; font-size: 20px; }
+        .key { min-width: 24px; height: 40px; font-size: 12px; }
+        .key.wide { min-width: 40px; font-size: 10px; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <a href="#">Stats</a>
+        <a href="#">Archives</a>
+    </div>
+    <div class="header-title">
+        MedGames<sup>™</sup>
+        <img src="https://www.rbsdirect.com.br/imagesrc/35560467.jpg?format=webp&w=1600&h=1600&a=c" alt="Icon" style="height: 22px; border-radius:4px;">
+    </div>
+    <div class="header-right">
+        <a href="#">Meet the Team</a>
+        <a href="#">Login / Sign Up</a>
+    </div>
+</header>
+
+<main>
+    <div class="app">
+        <div class="brand">
+            <h1>Letroso <span>Med</span></h1>
+            <p>adivinhe o termo médico de 5 letras do dia</p>
+        </div>
+
+        <div class="stats-row">
+            <span id="dayLabel">Palavra de --/--</span>
+            <span>Sequência: <b id="streak">0</b></span>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-head">
+                <span>TENTATIVA Nº <span id="attemptNum">1</span>/6</span>
+                <span id="recDate">--/--/----</span>
+            </div>
+
+            <div class="toast" id="toast"></div>
+
+            <div class="grid-wrap">
+                <div class="grid" id="grid"></div>
+            </div>
+
+            <div class="keyboard" id="keyboard"></div>
+
+            <div class="feedback" id="feedback"></div>
+            <button class="btn-ghost share-btn" id="shareBtn" style="display:none;">Compartilhar resultado</button>
+            <div class="share-feedback" id="shareFeedback" style="display:none;"></div>
+            <div class="share-fallback" id="shareFallback" style="display:none;">
+                <p style="margin:0 0 6px;">Não consegui copiar automaticamente — selecione o texto abaixo e copie manualmente:</p>
+                <textarea id="shareFallbackText" readonly rows="4"></textarea>
+                <button class="btn-ghost" id="shareFallbackClose" style="margin-top:8px; font-size:0.75rem; padding:6px 10px;">Fechar</button>
+            </div>
+        </div>
+
+        <div class="stats-row" style="margin-top:14px;">
+            <button class="btn-ghost" id="testBtn" style="font-size:0.72rem; padding:7px 10px;">Sortear outra palavra (modo teste)</button>
+            <span id="testTag" class="test-tag"></span>
+        </div>
+
+        <div style="text-align:center; margin-top:8px;">
+            <button id="resetBtn" class="btn-ghost" style="font-size:0.68rem; padding:5px 9px;">Apagar meu progresso salvo</button>
+        </div>
+
+        <p class="note">
+            Protótipo — vocabulário médico para fins de estudo, sem validade clínica.<br>
+            Digite sem acentos, o jogo reconhece automaticamente. Uma palavra nova por dia.
+        </p>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>© 2026 The MedGames Team | Contact@medgames.org</p>
+    <div class="footer-links">
+        <a href="#">Privacy Policy</a> <span>|</span>
+        <a href="#">Data Deletion</a> <span>|</span>
+        <a href="#">@playmedgames</a>
+    </div>
+</footer>
+
+<script>
+/* ---------- Banco de palavras (5 letras, vocabulário médico) ---------- */
+const WORDS = [
+    { word: "FEBRE", dica: "Sinal", explicacao: "Elevação da temperatura corporal acima do normal, geralmente em resposta a uma infecção ou processo inflamatório. É um dos sinais vitais mais monitorados na prática clínica." },
+    { word: "TOSSE", dica: "Sintoma", explicacao: "Reflexo de defesa das vias aéreas que expulsa secreções ou corpos estranhos. Pode ser seca ou produtiva, aguda ou crônica, dependendo da causa de base." },
+    { word: "PERNA", dica: "Anatomia", explicacao: "Segmento do membro inferior entre o joelho e o tornozelo, composto pela tíbia e fíbula, além de músculos responsáveis pela marcha." },
+    { word: "BRAÇO", dica: "Anatomia", explicacao: "Segmento do membro superior entre o ombro e o cotovelo, cujo osso principal é o úmero." },
+    { word: "PULSO", dica: "Exame físico", explicacao: "Pode se referir à articulação entre antebraço e mão, ou à onda de pressão palpável em artérias, usada para avaliar frequência cardíaca." },
+    { word: "GRIPE", dica: "Doença", explicacao: "Infecção viral respiratória causada pelo vírus Influenza, com febre, mialgia, tosse e mal-estar geral." },
+    { word: "RUBOR", dica: "Sinal", explicacao: "Vermelhidão da pele, um dos sinais clássicos da inflamação, junto com calor, dor, edema e perda de função." },
+    { word: "EDEMA", dica: "Sinal", explicacao: "Acúmulo anormal de líquido no espaço intersticial, podendo ser localizado ou generalizado, com diversas causas possíveis." },
+    { word: "TUMOR", dica: "Patologia", explicacao: "Massa de tecido resultante de crescimento celular anormal, podendo ser benigna ou maligna." },
+    { word: "NERVO", dica: "Anatomia", explicacao: "Estrutura responsável por conduzir impulsos elétricos entre o sistema nervoso central e o restante do corpo." },
+    { word: "VEIAS", dica: "Anatomia", explicacao: "Vasos sanguíneos que conduzem o sangue de volta ao coração, geralmente com baixa pressão e válvulas que evitam refluxo." },
+    { word: "CISTO", dica: "Patologia", explicacao: "Cavidade revestida por epitélio, geralmente contendo líquido ou material semissólido, podendo ser congênito ou adquirido." },
+    { word: "CALOR", dica: "Sinal", explicacao: "Aumento da temperatura local, um dos sinais cardinais da inflamação descritos desde a Antiguidade." },
+    { word: "DORES", dica: "Sintoma", explicacao: "Experiência sensorial e emocional desagradável associada a dano tecidual real ou potencial, um dos motivos mais comuns de procura por atendimento." },
+    { word: "VÍRUS", dica: "Microbiologia", explicacao: "Agente infeccioso microscópico que depende de células hospedeiras para se replicar, causando diversas doenças." },
+    { word: "FUNGO", dica: "Microbiologia", explicacao: "Micro-organismo eucarionte que pode causar infecções superficiais ou sistêmicas, como candidíase e dermatofitoses." },
+    { word: "URINA", dica: "Exame", explicacao: "Fluido produzido pelos rins, eliminado pelo trato urinário, cuja análise (EAS) fornece diversas pistas diagnósticas." },
+    { word: "FEZES", dica: "Exame", explicacao: "Resíduos da digestão eliminados pelo intestino, cuja análise pode revelar parasitoses, sangramentos ocultos e mais." },
+    { word: "PELVE", dica: "Anatomia", explicacao: "Região anatômica localizada entre o abdome e os membros inferiores, contendo órgãos como bexiga, reto e órgãos reprodutivos." },
+    { word: "TÓRAX", dica: "Anatomia", explicacao: "Região do corpo entre pescoço e abdome, protegida pelas costelas, que contém coração e pulmões." },
+    { word: "ÓRGÃO", dica: "Anatomia", explicacao: "Estrutura formada por diferentes tecidos organizados para exercer uma função específica no corpo, como o coração ou o fígado." },
+    { word: "RENAL", dica: "Adjetivo", explicacao: "Relativo aos rins, órgãos responsáveis pela filtração do sangue e produção da urina." },
+    { word: "EXAME", dica: "Rotina clínica", explicacao: "Procedimento realizado para avaliar o estado de saúde, podendo ser físico, laboratorial ou de imagem." },
+    { word: "LAUDO", dica: "Documento", explicacao: "Documento com o resultado e interpretação de um exame, redigido por um profissional habilitado." },
+    { word: "SARNA", dica: "Doença", explicacao: "Dermatose causada pelo ácaro Sarcoptes scabiei, muito pruriginosa e contagiosa por contato próximo." },
+    { word: "LEPRA", dica: "Doença", explicacao: "Também chamada de hanseníase, é uma doença infecciosa crônica causada pelo Mycobacterium leprae, que afeta pele e nervos periféricos." },
+    { word: "RAIVA", dica: "Doença", explicacao: "Doença viral quase sempre fatal, transmitida principalmente pela mordida de mamíferos infectados, que afeta o sistema nervoso central." },
+    { word: "OTITE", dica: "Doença", explicacao: "Inflamação do ouvido, podendo ser externa, média ou interna, comum em crianças pequenas." },
+    { word: "ENJOO", dica: "Sintoma", explicacao: "Sensação desagradável de mal-estar gástrico, frequentemente acompanhada de vontade de vomitar." },
+    { word: "ÚTERO", dica: "Anatomia", explicacao: "Órgão do sistema reprodutor feminino onde ocorre a implantação do embrião e o desenvolvimento da gestação." },
+    { word: "DERME", dica: "Anatomia", explicacao: "Camada da pele localizada abaixo da epiderme, rica em vasos sanguíneos, nervos e anexos cutâneos." },
+    { word: "OMBRO", dica: "Anatomia", explicacao: "Articulação que conecta o membro superior ao tronco, uma das mais móveis do corpo humano." },
+    { word: "PUNHO", dica: "Anatomia", explicacao: "Região articular entre o antebraço e a mão, formada por múltiplos ossos do carpo." },
+    { word: "ÚMERO", dica: "Anatomia", explicacao: "Osso longo que forma o braço, articulando-se com a escápula no ombro e com rádio e ulna no cotovelo." },
+    { word: "RÁDIO", dica: "Anatomia", explicacao: "Um dos dois ossos do antebraço, localizado no lado do polegar." },
+    { word: "FÊMUR", dica: "Anatomia", explicacao: "Maior e mais forte osso do corpo humano, localizado na coxa." },
+    { word: "TÍBIA", dica: "Anatomia", explicacao: "Osso principal da perna, que sustenta a maior parte do peso corporal abaixo do joelho." },
+    { word: "DEDOS", dica: "Anatomia", explicacao: "Extremidades articuladas das mãos e pés, essenciais para preensão e equilíbrio." },
+    { word: "OSSOS", dica: "Anatomia", explicacao: "Estruturas rígidas que compõem o esqueleto, responsáveis por sustentação, proteção e produção de células sanguíneas." },
+    { word: "NARIZ", dica: "Anatomia", explicacao: "Órgão responsável pela olfação e primeira etapa do trato respiratório, aquecendo e filtrando o ar inspirado." },
+    { word: "PLACA", dica: "Patologia", explicacao: "Acúmulo localizado de material, como as placas ateroscleróticas nos vasos ou as placas na pele em algumas dermatoses." }
+];
+
+const LAUNCH_DATE = Date.UTC(2026, 6, 16); // 16 jul 2026 = dia 0
+const MAX_ATTEMPTS = 6;
+const WORD_LEN = 5;
+
+/* ---------- Normalização de acentos ---------- */
+function normalizeChar(ch) {
+    const map = {
+        "Á":"A","À":"A","Â":"A","Ã":"A","Ä":"A",
+        "É":"E","È":"E","Ê":"E","Ë":"E",
+        "Í":"I","Ì":"I","Î":"I","Ï":"I",
+        "Ó":"O","Ò":"O","Ô":"O","Õ":"O","Ö":"O",
+        "Ú":"U","Ù":"U","Û":"U","Ü":"U",
+        "Ç":"C"
+    };
+    return map[ch] || ch;
+}
+function normalizeWord(w) {
+    return w.toUpperCase().split("").map(normalizeChar).join("");
+}
+
+function daysSinceLaunch() {
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.floor((today - LAUNCH_DATE) / 86400000);
+}
+function todayStr() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+const rawDays = daysSinceLaunch();
+let dayIdx = ((rawDays % WORDS.length) + WORDS.length) % WORDS.length;
+const dayNumber = rawDays + 1;
+let testIdx = dayIdx;
+
+let currentGuess = "";
+let guesses = [];        // linhas já confirmadas (strings normalizadas, como digitadas)
+let rowStates = [];      // status por linha: array de "correct"/"present"/"absent"
+let gameOver = false;
+let won = false;
+let streak = 0;
+let progress = { streak: 0, lastDate: null, lastResult: null };
+let lastShareData = null;
+let keyStatus = {};      // status por tecla do teclado virtual
+
+function currentEntry() { return WORDS[testIdx]; }
+
+/* ---------- Persistência ---------- */
+async function loadProgress() {
+    try {
+        const result = await window.storage.get("letroso_progress", false);
+        return result ? JSON.parse(result.value) : { streak: 0, lastDate: null, lastResult: null };
+    } catch (err) {
+        return { streak: 0, lastDate: null, lastResult: null };
+    }
+}
+async function saveProgress(p) {
+    try {
+        await window.storage.set("letroso_progress", JSON.stringify(p), false);
+    } catch (err) {
+        console.error("Falha ao salvar progresso:", err);
+    }
+}
+
+/* ---------- Lógica do jogo (algoritmo tipo Wordle) ---------- */
+function evaluateGuess(guessNorm, targetNorm) {
+    const result = new Array(WORD_LEN).fill("absent");
+    const targetChars = targetNorm.split("");
+    const guessChars = guessNorm.split("");
+    const used = new Array(WORD_LEN).fill(false);
+
+    for (let i = 0; i < WORD_LEN; i++) {
+        if (guessChars[i] === targetChars[i]) {
+            result[i] = "correct";
+            used[i] = true;
+        }
+    }
+    for (let i = 0; i < WORD_LEN; i++) {
+        if (result[i] === "correct") continue;
+        const idx = targetChars.findIndex((c, j) => c === guessChars[i] && !used[j]);
+        if (idx !== -1) {
+            result[i] = "present";
+            used[idx] = true;
+        }
+    }
+    return result;
+}
+
+function updateKeyStatus(guessNorm, states) {
+    const priority = { absent: 0, present: 1, correct: 2 };
+    for (let i = 0; i < WORD_LEN; i++) {
+        const ch = guessNorm[i];
+        const st = states[i];
+        if (!keyStatus[ch] || priority[st] > priority[keyStatus[ch]]) {
+            keyStatus[ch] = st;
+        }
+    }
+}
+
+/* ---------- Renderização ---------- */
+function renderHeader() {
+    document.getElementById("streak").textContent = streak;
+    document.getElementById("recDate").textContent = new Date().toLocaleDateString("pt-BR");
+    document.getElementById("dayLabel").textContent =
+        "Palavra de " + new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    document.getElementById("attemptNum").textContent = Math.min(guesses.length + 1, MAX_ATTEMPTS);
+    document.getElementById("testTag").textContent =
+        testIdx !== dayIdx ? `pré-visualizando: ${currentEntry().dica}` : "";
+}
+
+function renderGrid() {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    for (let r = 0; r < MAX_ATTEMPTS; r++) {
+        const row = document.createElement("div");
+        row.className = "grid-row";
+        const isCurrentRow = r === guesses.length && !gameOver;
+        const letters = r < guesses.length ? guesses[r] : (isCurrentRow ? currentGuess.padEnd(WORD_LEN, " ") : " ".repeat(WORD_LEN));
+        const states = r < rowStates.length ? rowStates[r] : null;
+
+        for (let c = 0; c < WORD_LEN; c++) {
+            const tile = document.createElement("div");
+            tile.className = "tile";
+            const letter = letters[c];
+            if (letter && letter !== " ") {
+                tile.textContent = letter;
+                tile.classList.add("filled");
+            }
+            if (states) {
+                tile.classList.add(states[c]);
+            }
+            row.appendChild(tile);
+        }
+        grid.appendChild(row);
+    }
+}
+
+const KB_ROWS = [
+    ["Q","W","E","R","T","Y","U","I","O","P"],
+    ["A","S","D","F","G","H","J","K","L","Ç"],
+    ["ENTER","Z","X","C","V","B","N","M","⌫"]
+];
+
+function renderKeyboard() {
+    const kb = document.getElementById("keyboard");
+    kb.innerHTML = "";
+    KB_ROWS.forEach(rowKeys => {
+        const row = document.createElement("div");
+        row.className = "kb-row";
+        rowKeys.forEach(k => {
+            const btn = document.createElement("button");
+            btn.className = "key";
+            btn.textContent = k === "⌫" ? "⌫" : k;
+            if (k === "ENTER" || k === "⌫") btn.classList.add("wide");
+            const normKey = k === "ENTER" || k === "⌫" ? null : normalizeChar(k);
+            if (normKey && keyStatus[normKey]) btn.classList.add(keyStatus[normKey]);
+            btn.addEventListener("click", () => handleKey(k));
+            row.appendChild(btn);
+        });
+        kb.appendChild(row);
+    });
+}
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    if (msg) setTimeout(() => { if (t.textContent === msg) t.textContent = ""; }, 1800);
+}
+
+function shakeCurrentRow() {
+    const grid = document.getElementById("grid");
+    const row = grid.children[guesses.length];
+    if (!row) return;
+    [...row.children].forEach(tile => {
+        tile.classList.remove("shake");
+        void tile.offsetWidth;
+        tile.classList.add("shake");
+    });
+}
+
+/* ---------- Entrada ---------- */
+function handleKey(k) {
+    if (gameOver) return;
+    if (k === "ENTER") {
+        submitGuess();
+    } else if (k === "⌫") {
+        currentGuess = currentGuess.slice(0, -1);
+        renderGrid();
+    } else {
+        if (currentGuess.length < WORD_LEN) {
+            currentGuess += normalizeChar(k.toUpperCase());
+            renderGrid();
+        }
+    }
+}
+
+function submitGuess() {
+    if (currentGuess.length < WORD_LEN) {
+        showToast("Palavra incompleta");
+        shakeCurrentRow();
+        return;
+    }
+    const entry = currentEntry();
+    const targetNorm = normalizeWord(entry.word);
+    const states = evaluateGuess(currentGuess, targetNorm);
+
+    guesses.push(currentGuess);
+    rowStates.push(states);
+    updateKeyStatus(currentGuess, states);
+
+    const isCorrect = currentGuess === targetNorm;
+    currentGuess = "";
+    renderGrid();
+    renderKeyboard();
+    renderHeader();
+
+    if (isCorrect) {
+        gameOver = true;
+        won = true;
+        streak += 1;
+        finishGame();
+    } else if (guesses.length >= MAX_ATTEMPTS) {
+        gameOver = true;
+        won = false;
+        streak = 0;
+        finishGame();
+    }
+
+    if (gameOver && testIdx === dayIdx) {
+        progress = { streak, lastDate: todayStr(), lastResult: { correct: won, attempts: guesses.length, states: rowStates } };
+        saveProgress(progress);
+    }
+}
+
+function finishGame() {
+    const entry = currentEntry();
+    const fb = document.getElementById("feedback");
+    if (won) {
+        fb.innerHTML = `<div class="feedback-box right">Correto!<span class="dx">${entry.word}</span><span class="score">Tentativas usadas: ${guesses.length}/${MAX_ATTEMPTS} · Sequência: ${streak}</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
+    } else {
+        fb.innerHTML = `<div class="feedback-box wrong">Fim das tentativas.<span class="dx" style="font-style:normal;color:#8a3316;">Resposta: ${entry.word}</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
+    }
+    if (testIdx === dayIdx) {
+        lastShareData = { correct: won, attempts: guesses.length, states: rowStates };
+        document.getElementById("shareBtn").style.display = "block";
+    }
+}
+
+function showAlreadyPlayedState(result) {
+    gameOver = true;
+    won = result.correct;
+    guesses = new Array(result.attempts).fill("").map((_, i) => {
+        // reconstrói apenas os estados salvos (as letras não ficam guardadas, só os status)
+        return " ".repeat(WORD_LEN);
+    });
+    rowStates = result.states || [];
+    // preencher a última linha com a palavra certa se venceu, senão deixar como estava
+    renderGrid();
+    renderKeyboard();
+    const entry = currentEntry();
+    const fb = document.getElementById("feedback");
+    if (result.correct) {
+        fb.innerHTML = `<div class="feedback-box right">Você já resolveu a palavra de hoje.<span class="dx">${entry.word}</span><span class="score">Tentativas usadas: ${result.attempts}/${MAX_ATTEMPTS} · Volte amanhã pra uma palavra nova</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
+    } else {
+        fb.innerHTML = `<div class="feedback-box wrong">Você já tentou a palavra de hoje.<span class="dx" style="font-style:normal;color:#8a3316;">Resposta: ${entry.word}</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
+    }
+    lastShareData = { correct: result.correct, attempts: result.attempts, states: result.states };
+    document.getElementById("shareBtn").style.display = "block";
+    renderHeader();
+}
+
+function loadGame() {
+    currentGuess = "";
+    guesses = [];
+    rowStates = [];
+    gameOver = false;
+    won = false;
+    keyStatus = {};
+    document.getElementById("feedback").innerHTML = "";
+    document.getElementById("shareBtn").style.display = "none";
+    document.getElementById("shareFeedback").style.display = "none";
+    document.getElementById("shareFallback").style.display = "none";
+    document.getElementById("toast").textContent = "";
+    lastShareData = null;
+
+    renderHeader();
+    renderGrid();
+    renderKeyboard();
+
+    if (testIdx === dayIdx && progress.lastDate === todayStr() && progress.lastResult) {
+        showAlreadyPlayedState(progress.lastResult);
+    }
+}
+
+/* ---------- Compartilhamento ---------- */
+function buildShareText() {
+    if (!lastShareData) return "";
+    const { correct, attempts, states } = lastShareData;
+    const emojiMap = { correct: "🟩", present: "🟨", absent: "⬜" };
+    const grid = states.map(row => row.map(s => emojiMap[s]).join("")).join("\n");
+    const resultLine = correct ? `${attempts}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`;
+    return `Letroso Med #${dayNumber}\n${resultLine}\n${grid}\nsequência: ${streak}`;
+}
+
+async function handleShareClick() {
+    const text = buildShareText();
+    if (!text) return;
+    if (navigator.share) {
+        try {
+            await navigator.share({ text });
+            return;
+        } catch (err) {
+            // usuário cancelou o menu de compartilhar, ou API não suportada — segue pro clipboard
+        }
+    }
+    try {
+        await navigator.clipboard.writeText(text);
+        const fb = document.getElementById("shareFeedback");
+        fb.textContent = "Copiado! Cole no WhatsApp ou nos Stories.";
+        fb.style.display = "block";
+        setTimeout(() => { fb.style.display = "none"; }, 3000);
+    } catch (err) {
+        document.getElementById("shareFallbackText").value = text;
+        document.getElementById("shareFallback").style.display = "block";
+    }
+}
+
+/* ---------- Eventos ---------- */
+document.getElementById("shareBtn").addEventListener("click", handleShareClick);
+document.getElementById("shareFallbackClose").addEventListener("click", () => {
+    document.getElementById("shareFallback").style.display = "none";
+});
+
+document.getElementById("testBtn").addEventListener("click", () => {
+    testIdx = (testIdx + 1) % WORDS.length;
+    loadGame();
+});
+
+document.getElementById("resetBtn").addEventListener("click", async () => {
+    try { await window.storage.delete("letroso_progress", false); } catch (err) {}
+    progress = { streak: 0, lastDate: null, lastResult: null };
+    streak = 0;
+    testIdx = dayIdx;
+    loadGame();
+});
+
+document.addEventListener("keydown", (e) => {
+    if (gameOver) return;
+    const key = e.key;
+    if (key === "Enter") { handleKey("ENTER"); return; }
+    if (key === "Backspace") { handleKey("⌫"); return; }
+    const letter = key.length === 1 ? key.toUpperCase() : "";
+    if (letter && /^[A-ZÇÁÀÂÃÉÊÍÓÔÕÚÜ]$/.test(letter)) {
+        handleKey(letter);
+    }
+});
+
+(async function init() {
+    progress = await loadProgress();
+    streak = progress.streak || 0;
+    loadGame();
+})();
+</script>
+
+</body>
+</html>
