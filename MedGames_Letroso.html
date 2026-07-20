@@ -2,10 +2,12 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedGames — Letroso Med</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qual é a Palavra?</title>
 <style>
+    /* ==========================================================
+       VARIÁVEIS DE COR — mesma paleta do modelo de referência
+       ========================================================== */
     :root {
         --primary-bg: #770909;
         --page-bg: #f2f8fa;
@@ -21,18 +23,15 @@
         --bad-bg: #fee2e2;
         --bad-border: #ef4444;
         --bad-text: #991b1b;
-        --present-bg: #fef3c7;
-        --present-border: #f59e0b;
-        --present-text: #92400e;
-        --absent-bg: #ece3e3;
-        --absent-border: #b9a6a6;
-        --absent-text: #6b5555;
+        --gray-bg: #e5e7eb;
+        --gray-border: #9ca3af;
+        --gray-text: #374151;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', arial;
         background-color: var(--page-bg);
         color: var(--text-main);
         min-height: 100vh;
@@ -54,19 +53,8 @@
         top: 0;
         z-index: 100;
     }
-
     .header-left, .header-right { display: flex; gap: 15px; font-size: 14px; }
-
-    .header-title {
-        font-size: 20px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .header-title sup { font-size: 10px; vertical-align: super; }
-
+    .header-title { font-size: 26px; font-weight: 700; }
     a { color: inherit; text-decoration: none; cursor: pointer; }
     a:hover { text-decoration: underline; }
 
@@ -75,22 +63,21 @@
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding: 40px 16px;
+        padding: 32px 16px;
     }
 
     .app {
         background-color: var(--card-bg);
         width: 100%;
-        max-width: 620px;
-        padding: 34px 32px;
+        max-width: 640px;
+        padding: 30px 30px 26px;
         border-radius: 16px;
         border: 1px solid var(--border-color);
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
 
-    .brand { text-align: center; margin-bottom: 18px; }
-    .brand h1 { font-size: 28px; color: var(--primary-bg); font-weight: 700; }
-    .brand h1 span { font-weight: 400; color: var(--accent-teal); font-size: 0.62em; }
+    .brand { text-align: center; margin-bottom: 14px; }
+    .brand h1 { font-size: 26px; color: var(--primary-bg); font-weight: 700; }
     .brand p { margin-top: 4px; font-size: 13px; color: var(--text-muted); letter-spacing: 0.3px; }
 
     .stats-row {
@@ -99,707 +86,556 @@
         align-items: center;
         font-size: 13px;
         color: var(--text-muted);
-        margin-top: 6px;
+        margin-bottom: 14px;
     }
     .stats-row b { color: var(--primary-bg); }
 
-    .chart-card {
-        background-color: #f7fbfc;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 20px;
-        margin-top: 16px;
-    }
-
-    .chart-head {
+    /* Tabuleiro: tentativas anteriores + linha atual sendo digitada */
+    #board {
         display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.6px;
-        color: var(--text-muted);
-        margin-bottom: 14px;
-        text-transform: uppercase;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 18px;
+        min-height: 56px;
     }
-
-    /* Grade do jogo */
-    .grid-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
-    .grid {
-        display: grid;
-        grid-template-rows: repeat(6, 1fr);
-        gap: 7px;
-    }
-    .grid-row {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 7px;
-    }
-    .tile {
-        width: 52px;
-        height: 52px;
-        border: 2px solid var(--border-color);
-        border-radius: 8px;
+    .board-row {
         display: flex;
-        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
         justify-content: center;
-        font-size: 24px;
-        font-weight: 700;
-        text-transform: uppercase;
-        background-color: #ffffff;
-        color: var(--text-main);
-        transition: transform 0.15s ease;
-    }
-    .tile.filled { border-color: #b79b9b; }
-    .tile.flip { animation: flipTile 0.5s ease forwards; }
-    .tile.shake { animation: shakeTile 0.4s ease; }
-    @keyframes flipTile {
-        0% { transform: rotateX(0deg); }
-        50% { transform: rotateX(90deg); }
-        51% { transform: rotateX(90deg); }
-        100% { transform: rotateX(0deg); }
-    }
-    @keyframes shakeTile {
-        0%, 100% { transform: translateX(0); }
-        20% { transform: translateX(-6px); }
-        40% { transform: translateX(6px); }
-        60% { transform: translateX(-4px); }
-        80% { transform: translateX(4px); }
-    }
-    .tile.correct { background-color: var(--ok-border); border-color: var(--ok-border); color: #ffffff; }
-    .tile.present { background-color: var(--present-border); border-color: var(--present-border); color: #ffffff; }
-    .tile.absent { background-color: var(--absent-bg); border-color: var(--absent-border); color: var(--absent-text); }
-
-    /* Teclado virtual */
-    .keyboard { display: flex; flex-direction: column; gap: 7px; align-items: center; }
-    .kb-row { display: flex; gap: 5px; justify-content: center; }
-    .key {
-        min-width: 30px;
-        height: 44px;
-        border-radius: 6px;
-        border: none;
-        background-color: #e4d4d4;
-        color: var(--text-main);
-        font-family: inherit;
-        font-weight: 600;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 0 6px;
-        transition: background-color 0.15s;
-        text-transform: uppercase;
-    }
-    .key:hover { background-color: #d6c0c0; }
-    .key.wide { min-width: 52px; font-size: 11px; }
-    .key.correct { background-color: var(--ok-border); color: #fff; }
-    .key.present { background-color: var(--present-border); color: #fff; }
-    .key.absent { background-color: var(--absent-border); color: #fff2f2; }
-
-    .feedback { margin-top: 14px; }
-    .feedback-box {
-        border-radius: 10px;
-        padding: 16px 18px;
-        text-align: left;
-        animation: fadeIn 0.3s ease;
+        animation: fadeIn 0.25s ease;
     }
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(4px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .feedback-box.right { background-color: var(--ok-bg); border: 1px solid var(--ok-border); color: var(--ok-text); }
-    .feedback-box.wrong { background-color: var(--bad-bg); border: 1px solid var(--bad-border); color: var(--bad-text); }
-    .feedback-box .dx {
-        display: block;
+    .tile {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 19px;
         font-weight: 700;
-        margin-top: 6px;
-        font-style: italic;
-    }
-    .feedback-box .score { display: block; font-size: 12.5px; margin-top: 8px; opacity: 0.85; }
-    .explainer {
-        margin-top: 14px;
-        padding-top: 14px;
-        border-top: 1px solid rgba(0,0,0,0.12);
-        font-size: 13px;
-        line-height: 1.6;
+        text-transform: uppercase;
+        border: 2px solid var(--border-color);
+        background-color: #fff;
         color: var(--text-main);
     }
-    .explainer .title {
-        display: block;
-        font-weight: 700;
-        margin-bottom: 6px;
-        color: var(--primary-bg);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
+    .tile.typing {
+        border-color: var(--accent-teal);
+        background-color: #fff0f0;
     }
-    .toast {
+    .tile.green { background-color: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+    .tile.red { background-color: var(--bad-bg); border-color: var(--bad-border); color: var(--bad-text); }
+    .tile.gray { background-color: var(--gray-bg); border-color: var(--gray-border); color: var(--gray-text); }
+
+    .empty-hint {
         text-align: center;
         font-size: 13px;
-        font-weight: 600;
-        color: var(--bad-text);
-        margin-bottom: 10px;
-        min-height: 18px;
+        color: var(--text-muted);
+        font-style: italic;
+        padding: 8px 0;
     }
 
-    .btn-primary {
-        background-color: var(--accent-teal);
-        color: white;
-        border: none;
-        padding: 12px 22px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        white-space: nowrap;
-        font-size: 14px;
-        transition: background-color 0.2s;
-        font-family: inherit;
+    /* Teclado virtual */
+    #keyboard {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-top: 6px;
     }
-    .btn-primary:hover:not(:disabled) { background-color: #8d1616; }
-    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-    .share-btn { width: 100%; margin-top: 12px; }
-
-    .btn-ghost {
-        background-color: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-main);
-        padding: 9px 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        font-family: inherit;
-        transition: background-color 0.2s;
-    }
-    .btn-ghost:hover { background-color: #f0f7f9; }
-
-    .share-feedback { margin-top: 8px; font-size: 12.5px; color: var(--ok-text); text-align: center; font-weight: 600; }
-    .share-fallback {
-        margin-top: 10px;
-        background-color: #f7fbfc;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 12px;
-        font-size: 12.5px;
-    }
-    .share-fallback textarea {
-        width: 100%;
-        border: 1px solid var(--border-color);
+    .kb-row { display: flex; justify-content: center; gap: 5px; }
+    .key {
+        min-width: 34px;
+        height: 46px;
+        padding: 0 8px;
         border-radius: 6px;
-        padding: 8px;
-        font-size: 12px;
+        border: none;
+        background-color: #efe0e0;
+        color: var(--text-main);
         font-family: inherit;
-        resize: none;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.15s;
+        flex: 1;
+        max-width: 42px;
     }
+    .key:hover:not(:disabled) { background-color: #e2caca; }
+    .key.wide { flex: 1.6; max-width: 70px; font-size: 12px; }
+    .key:disabled { cursor: not-allowed; opacity: 0.6; }
+    .key.green { background-color: var(--ok-border); color: #fff; }
+    .key.red { background-color: var(--bad-border); color: #fff; }
+    .key.gray { background-color: var(--gray-border); color: #fff; }
 
-    .note { margin-top: 22px; text-align: center; font-size: 11px; color: var(--text-muted); line-height: 1.6; }
-    .test-tag { font-style: italic; color: var(--accent-teal); font-size: 12px; }
+    .guess-actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 18px;
+    }
+    .btn-desistir {
+        background-color: transparent;
+        color: var(--accent-teal);
+        border: 1px solid var(--accent-teal);
+        padding: 7px 18px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12.5px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s, color 0.2s;
+    }
+    .btn-desistir:hover:not(:disabled) { background-color: var(--accent-teal); color: #fff; }
+    .btn-desistir:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #feedback { margin-top: 14px; }
+    .feedback {
+        border-radius: 10px;
+        padding: 14px 16px;
+        text-align: center;
+        animation: fadeIn 0.3s ease;
+    }
+    .feedback.right { background-color: var(--ok-bg); border: 1px solid var(--ok-border); color: var(--ok-text); }
+    .feedback.wrong { background-color: var(--bad-bg); border: 1px solid var(--bad-border); color: var(--bad-text); }
+    .feedback .dx { display: block; font-size: 19px; font-weight: 700; margin-top: 6px; text-transform: uppercase; }
 
     footer.site-footer {
         background-color: var(--primary-bg);
         color: var(--text-muted);
-        padding: 20px;
+        padding: 18px;
         text-align: center;
-        font-size: 13px;
+        font-size: 12.5px;
     }
-    .footer-links { margin-top: 10px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    .footer-links span { color: var(--text-muted); }
 
     @media (max-width: 600px) {
         .header-left, .header-right { display: none; }
-        .app { padding: 22px 16px; }
-        .tile { width: 42px; height: 42px; font-size: 20px; }
-        .key { min-width: 24px; height: 40px; font-size: 12px; }
-        .key.wide { min-width: 40px; font-size: 10px; }
+        .app { padding: 20px 14px; }
+        .tile { width: 34px; height: 34px; font-size: 16px; }
+        .key { height: 42px; min-width: 26px; font-size: 12px; }
+        .key.wide { font-size: 10.5px; }
     }
+
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-content {
+        background-color: var(--card-bg);
+        width: 90%;
+        max-width: 520px;
+        max-height: 85vh;
+        border-radius: 16px;
+        padding: 28px 30px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        position: relative;
+        overflow-y: auto;
+    }
+    .modal-content h2 { font-size: 22px; color: var(--primary-bg); margin-bottom: 16px; text-align: center; }
+    .modal-content h3 { font-size: 15px; color: var(--accent-teal); margin-top: 14px; margin-bottom: 6px; }
+    .modal-content p, .modal-content li { font-size: 14px; line-height: 1.6; }
+    .modal-content .regra-card {
+        background-color: #fff0f0;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-top: 10px;
+        font-size: 13.5px;
+        line-height: 1.6;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .regra-card .amostra { display: flex; gap: 4px; }
+    .regra-card .tile { width: 30px; height: 30px; font-size: 14px; }
+    .modal-close {
+        position: absolute; top: 12px; right: 16px;
+        background: none; border: none; font-size: 22px;
+        color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    }
+    .modal-close:hover { background-color: #f0f0f0; color: var(--accent-teal); }
+    .modal-btn-fechar {
+        display: block; margin: 18px auto 0;
+        background-color: var(--accent-teal); color: white; border: none;
+        padding: 10px 32px; border-radius: 8px; font-weight: 600; font-size: 14px;
+        cursor: pointer; font-family: inherit;
+    }
+    .modal-btn-fechar:hover { background-color: #8d1616; }
 </style>
 </head>
 <body>
 
 <header>
-    <div class="header-left">
-        <a href="#">Stats</a>
-        <a href="#">Archives</a>
-    </div>
-    <div class="header-title">
-        MedGames<sup>™</sup>
-        <img src="https://www.rbsdirect.com.br/imagesrc/35560467.jpg?format=webp&w=1600&h=1600&a=c" alt="Icon" style="height: 22px; border-radius:4px;">
-    </div>
-    <div class="header-right">
-        <a href="#">Meet the Team</a>
-        <a href="#">Login / Sign Up</a>
-    </div>
+    <div class="header-left"><a href="#">Sobre</a></div>
+    <div class="header-title">MedGames</div>
+    <div class="header-right"><a href="#" id="linkComoJogar">Como jogar</a></div>
 </header>
 
 <main>
     <div class="app">
         <div class="brand">
-            <h1>Letroso <span>Med</span></h1>
-            <p>adivinhe o termo médico de 5 letras do dia</p>
+            <h1>Qual é a Palavra?</h1>
+            <p>Adivinhe qual palavra do mundo da medicina é a palavra secreta</p>
         </div>
 
         <div class="stats-row">
-            <span id="dayLabel">Palavra de --/--</span>
-            <span>Sequência: <b id="streak">0</b></span>
+            <span>Tentativa <b id="tentativaLabel">1</b> de <b id="tentativaMaxLabel">10</b></span>
         </div>
 
-        <div class="chart-card">
-            <div class="chart-head">
-                <span>TENTATIVA Nº <span id="attemptNum">1</span>/6</span>
-                <span id="recDate">--/--/----</span>
-            </div>
+        <div id="board"></div>
 
-            <div class="toast" id="toast"></div>
+        <div id="keyboard"></div>
 
-            <div class="grid-wrap">
-                <div class="grid" id="grid"></div>
-            </div>
-
-            <div class="keyboard" id="keyboard"></div>
-
-            <div class="feedback" id="feedback"></div>
-            <button class="btn-ghost share-btn" id="shareBtn" style="display:none;">Compartilhar resultado</button>
-            <div class="share-feedback" id="shareFeedback" style="display:none;"></div>
-            <div class="share-fallback" id="shareFallback" style="display:none;">
-                <p style="margin:0 0 6px;">Não consegui copiar automaticamente — selecione o texto abaixo e copie manualmente:</p>
-                <textarea id="shareFallbackText" readonly rows="4"></textarea>
-                <button class="btn-ghost" id="shareFallbackClose" style="margin-top:8px; font-size:0.75rem; padding:6px 10px;">Fechar</button>
-            </div>
+        <div class="guess-actions">
+            <button class="btn-desistir" id="btnDesistir">Desistir</button>
         </div>
 
-        <div class="stats-row" style="margin-top:14px;">
-            <button class="btn-ghost" id="testBtn" style="font-size:0.72rem; padding:7px 10px;">Sortear outra palavra (modo teste)</button>
-            <span id="testTag" class="test-tag"></span>
-        </div>
-
-        <div style="text-align:center; margin-top:8px;">
-            <button id="resetBtn" class="btn-ghost" style="font-size:0.68rem; padding:5px 9px;">Apagar meu progresso salvo</button>
-        </div>
-
-        <p class="note">
-            Protótipo — vocabulário médico para fins de estudo, sem validade clínica.<br>
-            Digite sem acentos, o jogo reconhece automaticamente. Uma palavra nova por dia.
-        </p>
+        <div id="feedback"></div>
     </div>
 </main>
 
-<footer class="site-footer">
-    <p>© 2026 The MedGames Team | Contact@medgames.org</p>
-    <div class="footer-links">
-        <a href="#">Privacy Policy</a> <span>|</span>
-        <a href="#">Data Deletion</a> <span>|</span>
-        <a href="#">@playmedgames</a>
+<div class="modal-overlay" id="modalComoJogar">
+    <div class="modal-content">
+        <button class="modal-close" id="modalCloseBtn" aria-label="Fechar">&times;</button>
+        <h2>Como jogar</h2>
+        <p>Seu objetivo é acertar qual a palavra secretaDigite palavras (que não sejam compostas) usando o teclado na tela ou o teclado do seu computador, e pressione <b>Enter</b> para tentar.</p>
+
+        <h3>Cores das letras</h3>
+        <div class="regra-card">
+            <div class="amostra"><div class="tile green">A</div></div>
+            <span>A letra está na palavra e está na ordem correta.</span>
+        </div>
+        <div class="regra-card">
+            <div class="amostra"><div class="tile red">B</div></div>
+            <span>A letra existe na palavra, mas está <b>fora da ordem</b> correta.</span>
+        </div>
+        <div class="regra-card">
+            <div class="amostra"><div class="tile gray">C</div></div>
+            <span>A letra <b>não existe</b> na palavra.</span>
+        </div>
+
+        <h3>Tentativas</h3>
+        <p>Você tem no máximo <b>10 tentativas</b>. Se não acertar, a palavra correta será revelada. Você pode clicar em "Desistir" a qualquer momento para revelar a resposta.</p>
+
+        <button class="modal-btn-fechar" id="modalBtnFechar">Entendi!</button>
     </div>
+</div>
+
+<footer class="site-footer">
+    Jogo de palavras — divirta-se!
 </footer>
 
 <script>
-/* ---------- Banco de palavras (5 letras, vocabulário médico) ---------- */
-const WORDS = [
-    { word: "FEBRE", dica: "Sinal", explicacao: "Elevação da temperatura corporal acima do normal, geralmente em resposta a uma infecção ou processo inflamatório. É um dos sinais vitais mais monitorados na prática clínica." },
-    { word: "TOSSE", dica: "Sintoma", explicacao: "Reflexo de defesa das vias aéreas que expulsa secreções ou corpos estranhos. Pode ser seca ou produtiva, aguda ou crônica, dependendo da causa de base." },
-    { word: "PERNA", dica: "Anatomia", explicacao: "Segmento do membro inferior entre o joelho e o tornozelo, composto pela tíbia e fíbula, além de músculos responsáveis pela marcha." },
-    { word: "BRAÇO", dica: "Anatomia", explicacao: "Segmento do membro superior entre o ombro e o cotovelo, cujo osso principal é o úmero." },
-    { word: "PULSO", dica: "Exame físico", explicacao: "Pode se referir à articulação entre antebraço e mão, ou à onda de pressão palpável em artérias, usada para avaliar frequência cardíaca." },
-    { word: "GRIPE", dica: "Doença", explicacao: "Infecção viral respiratória causada pelo vírus Influenza, com febre, mialgia, tosse e mal-estar geral." },
-    { word: "RUBOR", dica: "Sinal", explicacao: "Vermelhidão da pele, um dos sinais clássicos da inflamação, junto com calor, dor, edema e perda de função." },
-    { word: "EDEMA", dica: "Sinal", explicacao: "Acúmulo anormal de líquido no espaço intersticial, podendo ser localizado ou generalizado, com diversas causas possíveis." },
-    { word: "TUMOR", dica: "Patologia", explicacao: "Massa de tecido resultante de crescimento celular anormal, podendo ser benigna ou maligna." },
-    { word: "NERVO", dica: "Anatomia", explicacao: "Estrutura responsável por conduzir impulsos elétricos entre o sistema nervoso central e o restante do corpo." },
-    { word: "VEIAS", dica: "Anatomia", explicacao: "Vasos sanguíneos que conduzem o sangue de volta ao coração, geralmente com baixa pressão e válvulas que evitam refluxo." },
-    { word: "CISTO", dica: "Patologia", explicacao: "Cavidade revestida por epitélio, geralmente contendo líquido ou material semissólido, podendo ser congênito ou adquirido." },
-    { word: "CALOR", dica: "Sinal", explicacao: "Aumento da temperatura local, um dos sinais cardinais da inflamação descritos desde a Antiguidade." },
-    { word: "DORES", dica: "Sintoma", explicacao: "Experiência sensorial e emocional desagradável associada a dano tecidual real ou potencial, um dos motivos mais comuns de procura por atendimento." },
-    { word: "VÍRUS", dica: "Microbiologia", explicacao: "Agente infeccioso microscópico que depende de células hospedeiras para se replicar, causando diversas doenças." },
-    { word: "FUNGO", dica: "Microbiologia", explicacao: "Micro-organismo eucarionte que pode causar infecções superficiais ou sistêmicas, como candidíase e dermatofitoses." },
-    { word: "URINA", dica: "Exame", explicacao: "Fluido produzido pelos rins, eliminado pelo trato urinário, cuja análise (EAS) fornece diversas pistas diagnósticas." },
-    { word: "FEZES", dica: "Exame", explicacao: "Resíduos da digestão eliminados pelo intestino, cuja análise pode revelar parasitoses, sangramentos ocultos e mais." },
-    { word: "PELVE", dica: "Anatomia", explicacao: "Região anatômica localizada entre o abdome e os membros inferiores, contendo órgãos como bexiga, reto e órgãos reprodutivos." },
-    { word: "TÓRAX", dica: "Anatomia", explicacao: "Região do corpo entre pescoço e abdome, protegida pelas costelas, que contém coração e pulmões." },
-    { word: "ÓRGÃO", dica: "Anatomia", explicacao: "Estrutura formada por diferentes tecidos organizados para exercer uma função específica no corpo, como o coração ou o fígado." },
-    { word: "RENAL", dica: "Adjetivo", explicacao: "Relativo aos rins, órgãos responsáveis pela filtração do sangue e produção da urina." },
-    { word: "EXAME", dica: "Rotina clínica", explicacao: "Procedimento realizado para avaliar o estado de saúde, podendo ser físico, laboratorial ou de imagem." },
-    { word: "LAUDO", dica: "Documento", explicacao: "Documento com o resultado e interpretação de um exame, redigido por um profissional habilitado." },
-    { word: "SARNA", dica: "Doença", explicacao: "Dermatose causada pelo ácaro Sarcoptes scabiei, muito pruriginosa e contagiosa por contato próximo." },
-    { word: "LEPRA", dica: "Doença", explicacao: "Também chamada de hanseníase, é uma doença infecciosa crônica causada pelo Mycobacterium leprae, que afeta pele e nervos periféricos." },
-    { word: "RAIVA", dica: "Doença", explicacao: "Doença viral quase sempre fatal, transmitida principalmente pela mordida de mamíferos infectados, que afeta o sistema nervoso central." },
-    { word: "OTITE", dica: "Doença", explicacao: "Inflamação do ouvido, podendo ser externa, média ou interna, comum em crianças pequenas." },
-    { word: "ENJOO", dica: "Sintoma", explicacao: "Sensação desagradável de mal-estar gástrico, frequentemente acompanhada de vontade de vomitar." },
-    { word: "ÚTERO", dica: "Anatomia", explicacao: "Órgão do sistema reprodutor feminino onde ocorre a implantação do embrião e o desenvolvimento da gestação." },
-    { word: "DERME", dica: "Anatomia", explicacao: "Camada da pele localizada abaixo da epiderme, rica em vasos sanguíneos, nervos e anexos cutâneos." },
-    { word: "OMBRO", dica: "Anatomia", explicacao: "Articulação que conecta o membro superior ao tronco, uma das mais móveis do corpo humano." },
-    { word: "PUNHO", dica: "Anatomia", explicacao: "Região articular entre o antebraço e a mão, formada por múltiplos ossos do carpo." },
-    { word: "ÚMERO", dica: "Anatomia", explicacao: "Osso longo que forma o braço, articulando-se com a escápula no ombro e com rádio e ulna no cotovelo." },
-    { word: "RÁDIO", dica: "Anatomia", explicacao: "Um dos dois ossos do antebraço, localizado no lado do polegar." },
-    { word: "FÊMUR", dica: "Anatomia", explicacao: "Maior e mais forte osso do corpo humano, localizado na coxa." },
-    { word: "TÍBIA", dica: "Anatomia", explicacao: "Osso principal da perna, que sustenta a maior parte do peso corporal abaixo do joelho." },
-    { word: "DEDOS", dica: "Anatomia", explicacao: "Extremidades articuladas das mãos e pés, essenciais para preensão e equilíbrio." },
-    { word: "OSSOS", dica: "Anatomia", explicacao: "Estruturas rígidas que compõem o esqueleto, responsáveis por sustentação, proteção e produção de células sanguíneas." },
-    { word: "NARIZ", dica: "Anatomia", explicacao: "Órgão responsável pela olfação e primeira etapa do trato respiratório, aquecendo e filtrando o ar inspirado." },
-    { word: "PLACA", dica: "Patologia", explicacao: "Acúmulo localizado de material, como as placas ateroscleróticas nos vasos ou as placas na pele em algumas dermatoses." }
-];
+  // ============================================================
+  // BANCO DE PALAVRAS — palavras simples (não compostas)
+  // ============================================================
+  const bancoPalavras = [
+    "cranio","cerebro","cerebelo","tronco","ponte","bulbo","medula","meninge","dura","aracnoide","pia","liquor","ventriculo","plexo","neuronio","glia","astrocito","oligodendrocito","microglia","ependima","sinapse","dendrito","axonio","mielina","ganglio","nervo","dermatomo","miotomo","olho","orbita","palpebra","cilio","lagrima","glandula","conjuntiva","esclera","cornea","iris","pupila","cristalino","humor","vitreo","retina","macula","fovea","papila","ouvido","pavilhao","conduto","cerume","timpano","martelo","bigorna","estribo","coclea","saculo","utriculo","canal","labirinto","nariz","narina","septo","concha","meato","seio","maxilar","frontal","etmoidal","esfenoidal","olfato","boca","labio","dente","esmalte","dentina","polpa","cimento","periodonto","gengiva","palato","uvula","amigdala","lingua","saliva","faringe","nasofaringe","orofaringe","laringofaringe","laringe","epiglote","glote","cartilagem","tireoide","cricoide","aritenoide","traqueia","bronquio","bronquiolo","alveolo","pulmao","lobo","segmento","pleura","diafragma","mediastino","pericardio","miocardio","endocardio","coracao","atrio","ventriculo","valva","tricuspide","mitral","aortica","pulmonar","no","sinusal","feixe","purkinje","arteria","arteriola","capilar","venula","veia","aorta","carotida","subclavia","braquial","radial","ulnar","iliaca","femoral","poplitea","tibial","fibular","jugular","cava","azigos","porta","mesenterica","celiaca","renal","hepatica","esplenica","gastrica","sangue","plasma","soro","eritrocito","hemacia","reticulocito","leucocito","neutrofilo","eosinofilo","basofilo","linfocito","monocito","macrofago","plaqueta","trombocito","linfa","vaso","linfonodo","baco","timo","osso","epifise","diafise","metafise","periosteo","endosteo","osteoblasto","osteocito","osteoclasto","matriz","calcio","fosforo","colageno","condroblasto","condrocito","articulacao","sinovia","ligamento","tendao","aponeurose","musculo","fibra","sarcomero","actina","miosina","troponina","tropomiosina","fascia","epiderme","derme","hipoderme","queratina","melanina","pelo","foliculo","sebo","suor","unha","hipofise","pineal","paratireoide","adrenal","suprarrenal","pancreas","ilhota","ovario","testiculo","esofago","estomago","fundo","corpo","antro","piloro","cardia","intestino","duodeno","jejuno","ileo","ceco","apendice","colon","ascendente","transverso","descendente","sigmoide","reto","anus","esfincter","figado","lobulo","hepatocito","bile","vesicula","ducto","cistico","coledoco","pancreatico","rim","cortex","piramide","calice","pelve","nefron","glomerulo","capsula","tubulo","alca","ureter","bexiga","uretra","escroto","epididimo","deferente","prostata","penis","glande","prepucio","cavernoso","esponjoso","espermatozoide","semen","vulva","clitoris","vagina","utero","colo","endometrio","miometrio","perimetrio","tuba","fimbria","ovulo","radio","femur","tibia","fibula","umero","escapula","clavicula","esterno","costela","vertebra","sacro","coccix","patela","carpo","metacarpo","falange","tarso","metatarso","talus","calcaneo","navicular","cuboide","cuneiforme","esfenoide","etmoide","vomer","maxila","mandibula","zigomatico","palatino","lacrimal","nasal","occipital","parietal","temporal","hioide","deltoide","biceps","triceps","quadriceps","gastrocnemio","soleo","gluteo","psoas","iliaco","sartorio","pectineo","gracil","adutor","abdutor","pronador","supinador","flexor","extensor","masseter","bucinador","platisma","esternocleidomastoideo","escaleno","trapezio","latissimo","romboide","peitoral","serratil","intercostal","obliquo","transverso","cremaster","queratinocito","melanocito","fibroblasto","adipocito","miocito","cardiomiocito","enterocito","pneumocito","podocito","espermatogonia","oocito","zigoto","blastocisto","trofoblasto","embriao","feto","amnio","corion","placenta","cordao","umbigo","asma","bronquite","enfisema","pneumonia","tuberculose","rinite","sinusite","faringite","laringite","amigdalite","otite","conjuntivite","ceratite","uveite","glaucoma","catarata","retinopatia","miopia","hipermetropia","astigmatismo","presbiopia","estrabismo","nistagmo","surdez","labirintite","vertigem","cefaleia","enxaqueca","epilepsia","convulsao","meningite","encefalite","mielite","neurite","neuropatia","radiculopatia","alzheimer","parkinson","huntington","esclerose","esquizofrenia","depressao","ansiedade","panico","fobia","autismo","infarto","isquemia","angina","arritmia","taquicardia","bradicardia","fibrilacao","bloqueio","insuficiencia","hipertrofia","miocardite","endocardite","pericardite","aneurisma","disseccao","trombose","embolia","flebite","variz","hipertensao","hipotensao","choque","sincope","anemia","leucemia","linfoma","mieloma","policitemia","hemofilia","trombocitopenia","leucopenia","neutropenia","gastrite","ulcera","enterite","colite","apendicite","diverticulite","peritonite","proctite","hemorroida","fissura","fistula","hepatite","cirrose","esteatose","colecistite","colangite","pancreatite","nefrite","glomerulonefrite","pielonefrite","cistite","uretrite","prostatite","orquite","epididimite","balanite","vaginite","cervicite","endometrite","salpingite","ooforite","mastite","endometriose","adenomiose","policisto","mioma","polipo","cisto","tumor","cancer","carcinoma","sarcoma","melanoma","glioma","adenoma","lipoma","fibroma","osteoma","condroma","hemangioma","diabetes","obesidade","desnutricao","raquitismo","osteomalacia","osteoporose","bocio","hipotireoidismo","hipertireoidismo","nanismo","gigantismo","acromegalia","cushing","addison","vitiligo","albinismo","psoriase","dermatite","eczema","urticaria","acne","rosacea","impetigo","celulite","erisipela","furunculo","carbunculo","abscesso","escaras","tinha","candidiase","pitiriase","sarna","pediculose","miiase","malaria","chagas","leishmaniose","toxoplasmose","amebiase","giardiase","ascaridiase","teniase","cisticercose","esquistossomose","dengue","zika","chikungunya","febre","sarampo","rubeola","caxumba","varicela","variola","herpes","raiva","poliomielite","aids","sifilis","gonorreia","clamidia","cancro","tetano","botulismo","colera","difteria","coqueluche","hanseniase","leptospirose","brucelose","tifo","sepse","artrose","artrite","gota","lupus","fibromialgia","tendinite","bursite","escoliose","cifose","lordose","hernia","fratura","luxacao","entorse","dor","ardor","queimacao","pontada","fisgada","colica","peso","pressao","calafrio","suor","fadiga","astenia","fraqueza","cansaco","letargia","sonolencia","insonia","tontura","nausea","enjoo","vomito","regurgitacao","eructacao","flatulencia","diarreia","constipacao","melena","hematoquezia","enterorragia","ictericia","ascite","edema","anasarca","cianose","palidez","rubor","eritema","exantema","enantema","macula","papula","nodulo","vesicula","bolha","pustula","crosta","escama","escoriacao","cicatriz","queloide","prurido","coceira","alopecia","calvicie","hirsutismo","dispneia","taquipneia","bradipneia","apneia","tosse","escarro","catarro","hemoptise","espirro","coriza","obstrucao","ronco","estridor","sibilo","palpitacao","claudicacao","parestesia","dormencia","formigamento","hipoestesia","anestesia","hiperestesia","neuralgia","paralisia","paresia","plegia","tremor","tique","espasmo","mioclonia","rigidez","hipertonia","hipotonia","ataxia","apraxia","afasia","disfasia","disartria","disfonia","rouquidao","diplopia","amaurose","cegueira","escotoma","fotofobia","acufeno","zumbido","anosmia","hiposmia","hiperosmia","cacosmia","ageusia","hipogeusia","disgeusia","disfagia","odinofagia","pirose","polidipsia","polifagia","anorexia","inapetencia","poliuria","oliguria","anuria","nicturia","disuria","polaciuria","hematuria","proteinuria","glicosuria","piuria","incontinencia","retencao","polimenorreia","oligomenorreia","amenorreia","dismenorreia","menorragia","metrorragia","leucorreia","corrimento","dispareunia","vaginismo","impotencia","priapismo","frigidez","anorgasmia","delirio","alucinacao","ilusao","confusao","demencia","amnesia","agitacao","agressividade","apatia","tristeza","euforia","medo","obsessao","compulsao","bisturi","pinca","tesoura","agulha","fio","seringa","cateter","dreno","sonda","canula","tubo","equipo","frasco","bolsa","endoscopio","laparoscopio","artroscopio","broncoscopio","cistoscopio","oftalmoscopio","otoscopio","estetoscopio","esfigmomanometro","termometro","oximetro","monitor","desfibrilador","marcapasso","ventilador","ressuscitador","balanca","antropometro","fita","maca","cama","berco","incubadora","cadeira","muleta","bengala","andador","protese","ortese","tala","gesso","curativo","gaze","algodao","atadura","esparadrapo","micropore","adesivo","bandagem","alcool","iodo","clorexidina","sabao","degermante","vacina","injecao","puncao","infusao","transfusao","dialise","hemofiltracao","radiografia","fluoroscopia","ultrassom","tomografia","ressonancia","cintilografia","pet","eletrocardiograma","ecocardiograma","holter","eletroencefalograma","eletroneuromiografia","espirometria","audiometria","endoscopia","colonoscopia","biopsia","citologia","histologia","hemograma","coagulograma","glicemia","colesterol","triglicerideo","ureia","creatinina","acido","bilirrubina","transaminase","fosfatase","gama","amilase","lipase","sodio","potassio","magnesio","cloreto","ferro","ferritina","transferrina","vitamina","hormonio","antigeno","anticorpo","pcr","cultura","antibiograma","cirurgia","incisao","excisao","resseccao","amputacao","sutura","ligadura","hemostasia","cauterizacao","ablacao","enxerto","retalho","transplante","implante","reanimacao","intubacao","extubacao","traqueostomia","cricotireoidostomia","toracocentese","paracentese","pericardiocentese","artrocentese","raquianestesia","epidural","bloqueio","sedacao","analgesia","remedio","farmaco","droga","pilula","comprimido","dragea","capsula","xarope","suspensao","solucao","gota","pomada","creme","gel","pasta","locao","spray","aerossol","inalador","nebulizador","supositorio","analgesico","antitermico","antipiretico","antibiotico","antiviral","antifungico","antiparasitario","anestesico","sedativo","hipnotico","ansiolitico","antidepressivo","antipsicotico","neuroleptico","anticonvulsivante","antiparkinsoniano","estimulante","relaxante","broncodilatador","expectorante","mucolitico","antitussigeno","antiacido","antiemetico","laxante","antidiarreico","diuretico","vasodilatador","vasoconstritor","inotropico","cronotropico","dromotropico","antiarritmico","anticoagulante","trombolitico","hemostatico","hipoglicemiante","insulina","corticoide","androgeno","estrogeno","antidiabetico","estatina","fibrato","dipirona","paracetamol","ibuprofeno","diclofenaco","naproxeno","celecoxibe","aspirina","morfina","codeina","tramadol","fentanil","metadona","naloxona","flumazenil","diazepam","midazolam","clonazepam","alprazolam","lorazepam","fenobarbital","fenitoina","carbamazepina","valproato","gabapentina","pregabalina","levodopa","carbidopa","selegilina","amantadina","fluoxetina","sertralina","paroxetina","citalopram","escitalopram","venlafaxina","duloxetina","amitriptilina","nortriptilina","imipramina","clomipramina","haloperidol","clorpromazina","risperidona","olanzapina","quetiapina","clozapina","litio","omeprazol","pantoprazol","lansoprazol","ranitidina","cimetidina","domperidona","metoclopramida","ondansetrona","loperamida","bisacodil","lactulose","furosemida","hidroclorotiazida","espironolactona","amilorida","captopril","enalapril","lisinopril","losartana","valsartana","anlodipino","nifedipino","diltiazem","verapamil","propranolol","atenolol","metoprolol","carvedilol","amiodarona","digoxina","heparina","varfarina","rivaroxabana","apixabana","dabigatrana","clopidogrel","ticagrelor","alteplase","estreptoquinase","metformina","glibenclamida","glicazida","levotiroxina","propiltiouracil","dexametasona","prednisona","hidrocortisona","testosterona","estradiol","progesterona","sildenafila","tadalafila","sinvastatina","atorvastatina","rosuvastatina","ciprofibrato","amoxicilina","ampicilina","cefalexina","ceftriaxona","cefepima","meropenem","imipenem","azitromicina","claritromicina","eritromicina","ciprofloxacino","levofloxacino","moxifloxacino","gentamicina","amicacina","doxiciclina","minociclina","clindamicina","vancomicina","teicoplanina","linezolida","daptomicina","polimixina","sulfametoxazol","trimetoprima","metronidazol","fluconazol","itraconazol","voriconazol","anfotericina","caspofungina","aciclovir","valaciclovir","ganciclovir","oseltamivir","zidovudina","lamivudina","tenofovir","efavirenz","ritonavir","lopinavir","darunavir","raltegravir","dolutegravir","cloroquina","hidroxicloroquina","ivermectina","albendazol","mebendazol","praziquantel","permetrina","cardiologia","pneumologia","gastroenterologia","nefrologia","urologia","endocrinologia","neurologia","psiquiatria","dermatologia","oftalmologia","otorrinolaringologia","ortopedia","reumatologia","hematologia","oncologia","infectologia","imunologia","alergologia","pediatria","geriatria","ginecologia","obstetricia","mastologia","angiologia","anestesiologia","radiologia","patologia","genetica","nutrologia","medicina","enfermagem","fisioterapia","fonoaudiologia","psicologia","nutricao","odontologia","farmacia","biomedicina","biologia","fisiologia","embriologia","microbiologia","parasitologia","toxicologia","epidemiologia","cardiologista","pneumologista","gastroenterologista","nefrologista","urologista","endocrinologista","neurologista","psiquiatra","dermatologista","oftalmologista","otorrinolaringologista","ortopedista","reumatologista","hematologista","oncologista","infectologista","imunologista","alergologista","pediatra","geriatra","ginecologista","obstetra","mastologista","angiologista","cirurgiao","anestesista","radiologista","patologista","geneticista","nutrologo","medico","enfermeiro","fisioterapeuta","fonoaudiologo","psicologo","nutricionista","dentista","farmaceutico","biomedico","biologo","socorrista","maqueiro","recepcionista"
+  ];
 
-const LAUNCH_DATE = Date.UTC(2026, 6, 16); // 16 jul 2026 = dia 0
-const MAX_ATTEMPTS = 6;
-const WORD_LEN = 5;
+  const palavraSecreta = bancoPalavras[Math.floor(Math.random() * bancoPalavras.length)];
+  const TENTATIVAS_MAX = 10;
 
-/* ---------- Normalização de acentos ---------- */
-function normalizeChar(ch) {
-    const map = {
-        "Á":"A","À":"A","Â":"A","Ã":"A","Ä":"A",
-        "É":"E","È":"E","Ê":"E","Ë":"E",
-        "Í":"I","Ì":"I","Î":"I","Ï":"I",
-        "Ó":"O","Ò":"O","Ô":"O","Õ":"O","Ö":"O",
-        "Ú":"U","Ù":"U","Û":"U","Ü":"U",
-        "Ç":"C"
-    };
-    return map[ch] || ch;
-}
-function normalizeWord(w) {
-    return w.toUpperCase().split("").map(normalizeChar).join("");
-}
+  // ---------------- ESTADO DO JOGO ----------------
+  let atual = "";          // letras da tentativa sendo digitada agora
+  let tentativas = [];     // histórico: { guess, colors }
+  let jogoAcabou = false;
+  let statusLetras = {};   // melhor status já visto por letra, para colorir o teclado
 
-function daysSinceLaunch() {
-    const now = new Date();
-    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-    return Math.floor((today - LAUNCH_DATE) / 86400000);
-}
-function todayStr() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
+  const boardEl = document.getElementById("board");
+  const tentativaLabel = document.getElementById("tentativaLabel");
+  const tentativaMaxLabel = document.getElementById("tentativaMaxLabel");
+  const keyboardEl = document.getElementById("keyboard");
+  const feedbackEl = document.getElementById("feedback");
+  const btnDesistir = document.getElementById("btnDesistir");
 
-const rawDays = daysSinceLaunch();
-let dayIdx = ((rawDays % WORDS.length) + WORDS.length) % WORDS.length;
-const dayNumber = rawDays + 1;
-let testIdx = dayIdx;
+  tentativaMaxLabel.textContent = TENTATIVAS_MAX;
 
-let currentGuess = "";
-let guesses = [];        // linhas já confirmadas (strings normalizadas, como digitadas)
-let rowStates = [];      // status por linha: array de "correct"/"present"/"absent"
-let gameOver = false;
-let won = false;
-let streak = 0;
-let progress = { streak: 0, lastDate: null, lastResult: null };
-let lastShareData = null;
-let keyStatus = {};      // status por tecla do teclado virtual
+  function normalizar(texto) {
+    return texto.trim().toLowerCase();
+  }
 
-function currentEntry() { return WORDS[testIdx]; }
+  // Mapa de acentos: converte cada letra acentuada para sua versão "limpa".
+  // O "ç" é mantido como está (não é convertido para "c").
+  const mapaAcentos = {
+    "á": "a", "à": "a", "â": "a", "ã": "a", "ä": "a",
+    "é": "e", "è": "e", "ê": "e", "ë": "e",
+    "í": "i", "ì": "i", "î": "i", "ï": "i",
+    "ó": "o", "ò": "o", "ô": "o", "õ": "o", "ö": "o",
+    "ú": "u", "ù": "u", "û": "u", "ü": "u",
+    "ç": "ç"
+  };
 
-/* ---------- Persistência ---------- */
-async function loadProgress() {
-    try {
-        const result = await window.storage.get("letroso_progress", false);
-        return result ? JSON.parse(result.value) : { streak: 0, lastDate: null, lastResult: null };
-    } catch (err) {
-        return { streak: 0, lastDate: null, lastResult: null };
+  // Recebe uma única letra digitada (podendo vir acentuada) e devolve a
+  // versão a ser efetivamente usada no palpite (sem acento, exceto o "ç").
+  function limparAcentoLetra(letra) {
+    const minuscula = letra.toLowerCase();
+    return mapaAcentos[minuscula] !== undefined ? mapaAcentos[minuscula] : minuscula;
+  }
+
+  // ---------------- LÓGICA DE COMPARAÇÃO (baseada em subsequência comum) ----------------
+  // Encontra os índices que formam a maior subsequência comum entre o palpite e a palavra secreta.
+  // Essas letras "na ordem certa" (corretamente antes/depois de outras letras da palavra) ficam verdes.
+  function indicesSubsequenciaComum(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+        else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
     }
-}
-async function saveProgress(p) {
-    try {
-        await window.storage.set("letroso_progress", JSON.stringify(p), false);
-    } catch (err) {
-        console.error("Falha ao salvar progresso:", err);
+    let i = m, j = n;
+    const aCasada = new Array(m).fill(false);
+    const bCasada = new Array(n).fill(false);
+    while (i > 0 && j > 0) {
+      if (a[i - 1] === b[j - 1]) {
+        aCasada[i - 1] = true;
+        bCasada[j - 1] = true;
+        i--; j--;
+      } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+        i--;
+      } else {
+        j--;
+      }
     }
-}
+    return { aCasada, bCasada };
+  }
 
-/* ---------- Lógica do jogo (algoritmo tipo Wordle) ---------- */
-function evaluateGuess(guessNorm, targetNorm) {
-    const result = new Array(WORD_LEN).fill("absent");
-    const targetChars = targetNorm.split("");
-    const guessChars = guessNorm.split("");
-    const used = new Array(WORD_LEN).fill(false);
+  function avaliarPalpite(guessRaw, targetRaw) {
+    const guess = normalizar(guessRaw);
+    const target = normalizar(targetRaw);
+    const { aCasada, bCasada } = indicesSubsequenciaComum(guess, target);
 
-    for (let i = 0; i < WORD_LEN; i++) {
-        if (guessChars[i] === targetChars[i]) {
-            result[i] = "correct";
-            used[i] = true;
+    // letras da palavra secreta que não fizeram parte da ordem correta
+    const sobras = {};
+    for (let j = 0; j < target.length; j++) {
+      if (!bCasada[j]) sobras[target[j]] = (sobras[target[j]] || 0) + 1;
+    }
+
+    const cores = [];
+    for (let i = 0; i < guess.length; i++) {
+      if (aCasada[i]) {
+        cores.push("green");
+      } else {
+        const ch = guess[i];
+        if (sobras[ch] > 0) {
+          cores.push("red");
+          sobras[ch]--;
+        } else {
+          cores.push("gray");
         }
+      }
     }
-    for (let i = 0; i < WORD_LEN; i++) {
-        if (result[i] === "correct") continue;
-        const idx = targetChars.findIndex((c, j) => c === guessChars[i] && !used[j]);
-        if (idx !== -1) {
-            result[i] = "present";
-            used[idx] = true;
-        }
-    }
-    return result;
-}
+    return cores;
+  }
 
-function updateKeyStatus(guessNorm, states) {
-    const priority = { absent: 0, present: 1, correct: 2 };
-    for (let i = 0; i < WORD_LEN; i++) {
-        const ch = guessNorm[i];
-        const st = states[i];
-        if (!keyStatus[ch] || priority[st] > priority[keyStatus[ch]]) {
-            keyStatus[ch] = st;
-        }
-    }
-}
+  // ---------------- RENDERIZAÇÃO ----------------
+  function renderBoard() {
+    boardEl.innerHTML = "";
 
-/* ---------- Renderização ---------- */
-function renderHeader() {
-    document.getElementById("streak").textContent = streak;
-    document.getElementById("recDate").textContent = new Date().toLocaleDateString("pt-BR");
-    document.getElementById("dayLabel").textContent =
-        "Palavra de " + new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-    document.getElementById("attemptNum").textContent = Math.min(guesses.length + 1, MAX_ATTEMPTS);
-    document.getElementById("testTag").textContent =
-        testIdx !== dayIdx ? `pré-visualizando: ${currentEntry().dica}` : "";
-}
-
-function renderGrid() {
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
-    for (let r = 0; r < MAX_ATTEMPTS; r++) {
-        const row = document.createElement("div");
-        row.className = "grid-row";
-        const isCurrentRow = r === guesses.length && !gameOver;
-        const letters = r < guesses.length ? guesses[r] : (isCurrentRow ? currentGuess.padEnd(WORD_LEN, " ") : " ".repeat(WORD_LEN));
-        const states = r < rowStates.length ? rowStates[r] : null;
-
-        for (let c = 0; c < WORD_LEN; c++) {
-            const tile = document.createElement("div");
-            tile.className = "tile";
-            const letter = letters[c];
-            if (letter && letter !== " ") {
-                tile.textContent = letter;
-                tile.classList.add("filled");
-            }
-            if (states) {
-                tile.classList.add(states[c]);
-            }
-            row.appendChild(tile);
-        }
-        grid.appendChild(row);
-    }
-}
-
-const KB_ROWS = [
-    ["Q","W","E","R","T","Y","U","I","O","P"],
-    ["A","S","D","F","G","H","J","K","L","Ç"],
-    ["ENTER","Z","X","C","V","B","N","M","⌫"]
-];
-
-function renderKeyboard() {
-    const kb = document.getElementById("keyboard");
-    kb.innerHTML = "";
-    KB_ROWS.forEach(rowKeys => {
-        const row = document.createElement("div");
-        row.className = "kb-row";
-        rowKeys.forEach(k => {
-            const btn = document.createElement("button");
-            btn.className = "key";
-            btn.textContent = k === "⌫" ? "⌫" : k;
-            if (k === "ENTER" || k === "⌫") btn.classList.add("wide");
-            const normKey = k === "ENTER" || k === "⌫" ? null : normalizeChar(k);
-            if (normKey && keyStatus[normKey]) btn.classList.add(keyStatus[normKey]);
-            btn.addEventListener("click", () => handleKey(k));
-            row.appendChild(btn);
-        });
-        kb.appendChild(row);
+    tentativas.forEach(t => {
+      const row = document.createElement("div");
+      row.className = "board-row";
+      for (let i = 0; i < t.guess.length; i++) {
+        const tile = document.createElement("div");
+        tile.className = "tile " + t.colors[i];
+        tile.textContent = t.guess[i];
+        row.appendChild(tile);
+      }
+      boardEl.appendChild(row);
     });
-}
 
-function showToast(msg) {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    if (msg) setTimeout(() => { if (t.textContent === msg) t.textContent = ""; }, 1800);
-}
-
-function shakeCurrentRow() {
-    const grid = document.getElementById("grid");
-    const row = grid.children[guesses.length];
-    if (!row) return;
-    [...row.children].forEach(tile => {
-        tile.classList.remove("shake");
-        void tile.offsetWidth;
-        tile.classList.add("shake");
-    });
-}
-
-/* ---------- Entrada ---------- */
-function handleKey(k) {
-    if (gameOver) return;
-    if (k === "ENTER") {
-        submitGuess();
-    } else if (k === "⌫") {
-        currentGuess = currentGuess.slice(0, -1);
-        renderGrid();
-    } else {
-        if (currentGuess.length < WORD_LEN) {
-            currentGuess += normalizeChar(k.toUpperCase());
-            renderGrid();
+    if (!jogoAcabou) {
+      const row = document.createElement("div");
+      row.className = "board-row";
+      if (atual.length === 0) {
+        const hint = document.createElement("div");
+        hint.className = "empty-hint";
+        hint.textContent = "Digite uma palavra e pressione Enter";
+        row.appendChild(hint);
+      } else {
+        for (let i = 0; i < atual.length; i++) {
+          const tile = document.createElement("div");
+          tile.className = "tile typing";
+          tile.textContent = atual[i];
+          row.appendChild(tile);
         }
-    }
-}
-
-function submitGuess() {
-    if (currentGuess.length < WORD_LEN) {
-        showToast("Palavra incompleta");
-        shakeCurrentRow();
-        return;
-    }
-    const entry = currentEntry();
-    const targetNorm = normalizeWord(entry.word);
-    const states = evaluateGuess(currentGuess, targetNorm);
-
-    guesses.push(currentGuess);
-    rowStates.push(states);
-    updateKeyStatus(currentGuess, states);
-
-    const isCorrect = currentGuess === targetNorm;
-    currentGuess = "";
-    renderGrid();
-    renderKeyboard();
-    renderHeader();
-
-    if (isCorrect) {
-        gameOver = true;
-        won = true;
-        streak += 1;
-        finishGame();
-    } else if (guesses.length >= MAX_ATTEMPTS) {
-        gameOver = true;
-        won = false;
-        streak = 0;
-        finishGame();
+      }
+      boardEl.appendChild(row);
     }
 
-    if (gameOver && testIdx === dayIdx) {
-        progress = { streak, lastDate: todayStr(), lastResult: { correct: won, attempts: guesses.length, states: rowStates } };
-        saveProgress(progress);
-    }
-}
+    tentativaLabel.textContent = Math.min(tentativas.length + 1, TENTATIVAS_MAX);
+  }
 
-function finishGame() {
-    const entry = currentEntry();
-    const fb = document.getElementById("feedback");
-    if (won) {
-        fb.innerHTML = `<div class="feedback-box right">Correto!<span class="dx">${entry.word}</span><span class="score">Tentativas usadas: ${guesses.length}/${MAX_ATTEMPTS} · Sequência: ${streak}</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
-    } else {
-        fb.innerHTML = `<div class="feedback-box wrong">Fim das tentativas.<span class="dx" style="font-style:normal;color:#8a3316;">Resposta: ${entry.word}</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
-    }
-    if (testIdx === dayIdx) {
-        lastShareData = { correct: won, attempts: guesses.length, states: rowStates };
-        document.getElementById("shareBtn").style.display = "block";
-    }
-}
-
-function showAlreadyPlayedState(result) {
-    gameOver = true;
-    won = result.correct;
-    guesses = new Array(result.attempts).fill("").map((_, i) => {
-        // reconstrói apenas os estados salvos (as letras não ficam guardadas, só os status)
-        return " ".repeat(WORD_LEN);
+  function renderKeyboard() {
+    const linhas = [
+      ["q","w","e","r","t","y","u","i","o","p"],
+      ["a","s","d","f","g","h","j","k","l","ç"],
+      ["ENTER","z","x","c","v","b","n","m","⌫"]
+    ];
+    keyboardEl.innerHTML = "";
+    linhas.forEach(linha => {
+      const rowEl = document.createElement("div");
+      rowEl.className = "kb-row";
+      linha.forEach(tecla => {
+        const btn = document.createElement("button");
+        btn.className = "key";
+        btn.type = "button";
+        btn.disabled = jogoAcabou;
+        if (tecla === "ENTER" || tecla === "⌫") {
+          btn.classList.add("wide");
+          btn.textContent = tecla === "ENTER" ? "Enter" : "⌫";
+        } else {
+          btn.textContent = tecla;
+          if (statusLetras[tecla]) btn.classList.add(statusLetras[tecla]);
+        }
+        btn.addEventListener("click", () => tratarTecla(tecla));
+        rowEl.appendChild(btn);
+      });
+      keyboardEl.appendChild(rowEl);
     });
-    rowStates = result.states || [];
-    // preencher a última linha com a palavra certa se venceu, senão deixar como estava
-    renderGrid();
-    renderKeyboard();
-    const entry = currentEntry();
-    const fb = document.getElementById("feedback");
-    if (result.correct) {
-        fb.innerHTML = `<div class="feedback-box right">Você já resolveu a palavra de hoje.<span class="dx">${entry.word}</span><span class="score">Tentativas usadas: ${result.attempts}/${MAX_ATTEMPTS} · Volte amanhã pra uma palavra nova</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
-    } else {
-        fb.innerHTML = `<div class="feedback-box wrong">Você já tentou a palavra de hoje.<span class="dx" style="font-style:normal;color:#8a3316;">Resposta: ${entry.word}</span><div class="explainer"><span class="title">Sobre esse termo</span>${entry.explicacao}</div></div>`;
+  }
+
+  function atualizarStatusLetras(guess, cores) {
+    const prioridade = { gray: 0, red: 1, green: 2 };
+    for (let i = 0; i < guess.length; i++) {
+      const ch = guess[i];
+      const cor = cores[i];
+      if (!statusLetras[ch] || prioridade[cor] > prioridade[statusLetras[ch]]) {
+        statusLetras[ch] = cor;
+      }
     }
-    lastShareData = { correct: result.correct, attempts: result.attempts, states: result.states };
-    document.getElementById("shareBtn").style.display = "block";
-    renderHeader();
-}
+  }
 
-function loadGame() {
-    currentGuess = "";
-    guesses = [];
-    rowStates = [];
-    gameOver = false;
-    won = false;
-    keyStatus = {};
-    document.getElementById("feedback").innerHTML = "";
-    document.getElementById("shareBtn").style.display = "none";
-    document.getElementById("shareFeedback").style.display = "none";
-    document.getElementById("shareFallback").style.display = "none";
-    document.getElementById("toast").textContent = "";
-    lastShareData = null;
+  // ---------------- AÇÕES DO JOGO ----------------
+  function tratarTecla(tecla) {
+    if (jogoAcabou) return;
 
-    renderHeader();
-    renderGrid();
+    if (tecla === "ENTER") {
+      enviarPalpite();
+      return;
+    }
+    if (tecla === "⌫") {
+      atual = atual.slice(0, -1);
+      renderBoard();
+      return;
+    }
+    if (atual.length < 20) {
+      atual += tecla;
+      renderBoard();
+    }
+  }
+
+  function enviarPalpite() {
+    if (jogoAcabou) return;
+    const palpite = atual.trim();
+    if (palpite.length === 0) return;
+
+    // impede palavras compostas (com espaço ou hífen)
+    if (/[\s-]/.test(palpite)) {
+      mostrarErroTemporario("Digite apenas uma palavra simples, sem espaços ou hífen.");
+      return;
+    }
+
+    const cores = avaliarPalpite(palpite, palavraSecreta);
+    atualizarStatusLetras(normalizar(palpite), cores);
+    tentativas.push({ guess: normalizar(palpite), colors: cores });
+    atual = "";
+
+    const acertou = normalizar(palpite) === normalizar(palavraSecreta);
+
+    if (acertou) {
+      encerrarJogo(true);
+    } else if (tentativas.length >= TENTATIVAS_MAX) {
+      encerrarJogo(false);
+    } else {
+      renderBoard();
+      renderKeyboard();
+    }
+  }
+
+  function mostrarErroTemporario(msg) {
+    feedbackEl.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "feedback wrong";
+    box.textContent = msg;
+    feedbackEl.appendChild(box);
+    setTimeout(() => { if (!jogoAcabou) feedbackEl.innerHTML = ""; }, 2500);
+  }
+
+  function encerrarJogo(venceu) {
+    jogoAcabou = true;
+    btnDesistir.disabled = true;
+    renderBoard();
     renderKeyboard();
 
-    if (testIdx === dayIdx && progress.lastDate === todayStr() && progress.lastResult) {
-        showAlreadyPlayedState(progress.lastResult);
+    feedbackEl.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "feedback " + (venceu ? "right" : "wrong");
+    if (venceu) {
+      box.innerHTML = "Parabéns, você acertou!<span class=\"dx\">" + palavraSecreta + "</span>";
+    } else {
+      box.innerHTML = "Não foi dessa vez. A palavra secreta era:<span class=\"dx\">" + palavraSecreta + "</span>";
     }
-}
+    feedbackEl.appendChild(box);
+  }
 
-/* ---------- Compartilhamento ---------- */
-function buildShareText() {
-    if (!lastShareData) return "";
-    const { correct, attempts, states } = lastShareData;
-    const emojiMap = { correct: "🟩", present: "🟨", absent: "⬜" };
-    const grid = states.map(row => row.map(s => emojiMap[s]).join("")).join("\n");
-    const resultLine = correct ? `${attempts}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`;
-    return `Letroso Med #${dayNumber}\n${resultLine}\n${grid}\nsequência: ${streak}`;
-}
+  // ---------------- EVENTOS ----------------
+  btnDesistir.addEventListener("click", () => {
+    if (jogoAcabou) return;
+    encerrarJogo(false);
+  });
 
-async function handleShareClick() {
-    const text = buildShareText();
-    if (!text) return;
-    if (navigator.share) {
-        try {
-            await navigator.share({ text });
-            return;
-        } catch (err) {
-            // usuário cancelou o menu de compartilhar, ou API não suportada — segue pro clipboard
-        }
+  document.addEventListener("keydown", (e) => {
+    if (jogoAcabou) return;
+    const modalAberto = document.getElementById("modalComoJogar").classList.contains("visible");
+    if (modalAberto) return;
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      enviarPalpite();
+    } else if (e.key === "Backspace") {
+      e.preventDefault();
+      atual = atual.slice(0, -1);
+      renderBoard();
+    } else if (/^[a-zA-ZçÇáàâãäéèêëíìîïóòôõöúùûü]$/.test(e.key)) {
+      if (atual.length < 20) {
+        atual += limparAcentoLetra(e.key);
+        renderBoard();
+      }
     }
-    try {
-        await navigator.clipboard.writeText(text);
-        const fb = document.getElementById("shareFeedback");
-        fb.textContent = "Copiado! Cole no WhatsApp ou nos Stories.";
-        fb.style.display = "block";
-        setTimeout(() => { fb.style.display = "none"; }, 3000);
-    } catch (err) {
-        document.getElementById("shareFallbackText").value = text;
-        document.getElementById("shareFallback").style.display = "block";
+  });
+
+  // ---------------- MODAL "COMO JOGAR" ----------------
+  const modalComoJogar = document.getElementById("modalComoJogar");
+  document.getElementById("linkComoJogar").addEventListener("click", (e) => {
+    e.preventDefault();
+    modalComoJogar.classList.add("visible");
+  });
+  document.getElementById("modalCloseBtn").addEventListener("click", () => modalComoJogar.classList.remove("visible"));
+  document.getElementById("modalBtnFechar").addEventListener("click", () => modalComoJogar.classList.remove("visible"));
+  modalComoJogar.addEventListener("click", (e) => {
+    if (e.target === modalComoJogar) modalComoJogar.classList.remove("visible");
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalComoJogar.classList.contains("visible")) {
+      modalComoJogar.classList.remove("visible");
     }
-}
+  });
 
-/* ---------- Eventos ---------- */
-document.getElementById("shareBtn").addEventListener("click", handleShareClick);
-document.getElementById("shareFallbackClose").addEventListener("click", () => {
-    document.getElementById("shareFallback").style.display = "none";
-});
-
-document.getElementById("testBtn").addEventListener("click", () => {
-    testIdx = (testIdx + 1) % WORDS.length;
-    loadGame();
-});
-
-document.getElementById("resetBtn").addEventListener("click", async () => {
-    try { await window.storage.delete("letroso_progress", false); } catch (err) {}
-    progress = { streak: 0, lastDate: null, lastResult: null };
-    streak = 0;
-    testIdx = dayIdx;
-    loadGame();
-});
-
-document.addEventListener("keydown", (e) => {
-    if (gameOver) return;
-    const key = e.key;
-    if (key === "Enter") { handleKey("ENTER"); return; }
-    if (key === "Backspace") { handleKey("⌫"); return; }
-    const letter = key.length === 1 ? key.toUpperCase() : "";
-    if (letter && /^[A-ZÇÁÀÂÃÉÊÍÓÔÕÚÜ]$/.test(letter)) {
-        handleKey(letter);
-    }
-});
-
-(async function init() {
-    progress = await loadProgress();
-    streak = progress.streak || 0;
-    loadGame();
-})();
+  // ---------------- INÍCIO ----------------
+  renderBoard();
+  renderKeyboard();
 </script>
 
 </body>
